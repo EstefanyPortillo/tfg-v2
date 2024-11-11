@@ -10,7 +10,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 # Directorio de datos
-DATADIR = "C:/Users/Estefy Portillo/Desktop/Tes_1/archive/jpeg224"
+DATADIR = "C:/Users/Estefy Portillo/Desktop/Tes_1/backend/archive/jpeg224"
 CATEGORIAS = ['test', 'train']
 
 # Función para cargar datos
