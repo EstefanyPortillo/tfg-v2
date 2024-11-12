@@ -10,10 +10,34 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 # Directorio de datos
-DATADIR = "C:/Users/Estefy Portillo/Desktop/Tes_1/backend/archive/jpeg224"
+DATADIR = r"C:/Users/Estefy Portillo/Desktop/Tes_2/backend/archive/jpeg224"
 CATEGORIAS = ['test', 'train']
 
-# Función para cargar datos
+# Función para eliminar cabellos
+def eliminar_pelo(imagen):
+    gris = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+    desenfoque = cv2.GaussianBlur(gris, (5, 5), 0)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+    pelo_resaltado = cv2.morphologyEx(desenfoque, cv2.MORPH_BLACKHAT, kernel)
+    
+    _, mascara_pelo = cv2.threshold(pelo_resaltado, 10, 255, cv2.THRESH_BINARY)
+    kernel_dilatacion = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    mascara_pelo = cv2.dilate(mascara_pelo, kernel_dilatacion, iterations=1)
+    
+    imagen_sin_pelo = cv2.inpaint(imagen, mascara_pelo, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+    return imagen_sin_pelo
+
+# Función para segmentar lesiones
+def segmentar_lesion(imagen):
+    gris = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+    desenfoque = cv2.GaussianBlur(gris, (5, 5), 0)
+    umbral = cv2.adaptiveThreshold(desenfoque, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                   cv2.THRESH_BINARY_INV, 11, 2)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    umbral = cv2.morphologyEx(umbral, cv2.MORPH_CLOSE, kernel)
+    return umbral
+
+# Función para cargar datos con eliminación de cabellos y segmentación de lesiones
 def cargar_datos(tamano_imagen=224):
     datos, etiquetas = [], []
     for categoria in CATEGORIAS:
@@ -25,8 +49,20 @@ def cargar_datos(tamano_imagen=224):
             imagen = cv2.imread(imagen_ruta)
 
             if imagen is not None:
-                imagen = cv2.resize(imagen, (tamano_imagen, tamano_imagen))  # Redimensionar
-                datos.append(imagen)
+                # Eliminar cabello antes de la segmentación
+                imagen_sin_pelo = eliminar_pelo(imagen)
+                
+                # Segmentar la lesión después de eliminar el cabello
+                imagen_segmentada = segmentar_lesion(imagen_sin_pelo)
+                
+                # Convertir la imagen segmentada a 3 canales para que sea compatible con EfficientNet
+                imagen_segmentada = cv2.cvtColor(imagen_segmentada, cv2.COLOR_GRAY2RGB)
+                
+                # Redimensionar la imagen para el modelo
+                imagen_segmentada = cv2.resize(imagen_segmentada, (tamano_imagen, tamano_imagen))
+                
+                # Añadir la imagen procesada y su etiqueta
+                datos.append(imagen_segmentada)
                 etiquetas.append(valor)
             else:
                 print(f"Error al cargar la imagen: {imagen_ruta}")
@@ -80,4 +116,4 @@ history = modelo_optimizado.fit(data_gen.flow(X_train, y_train, batch_size=32),
                                 epochs=20)
 
 # Guardar el modelo optimizado
-modelo_optimizado.save("modelo_optimizado_v3.keras")    
+modelo_optimizado.save("modelo_optimizado_v4.keras")

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Imágenes de Melanoma</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Comparador de Imágenes de Melanoma</h1>
+        
+        <!-- Formulario para cargar imágenes -->
+        <form id="form-comparar">
+            <label for="imagen1">Cargar Imagen 1:</label>
+            <input type="file" id="imagen1" name="imagen1" accept="image/*" required>
+            
+            <label for="imagen2">Cargar Imagen 2:</label>
+            <input type="file" id="imagen2" name="imagen2" accept="image/*" required>
+            
+            <button type="submit">Comparar Imágenes</button>
+        </form>
+
+        <!-- Botón y resultado para Grad-CAM -->
+        <button type="button" onclick="obtenerGradCAM()">Generar Grad-CAM para Imagen 1</button>
+        <img id="gradcam-result" style="display:none; margin-top:20px; width:100%;" alt="Resultado Grad-CAM">
+
+        <!-- Sección para mostrar resultados -->
+        <div id="resultados" style="display: none;">
+            <h2>Resultados</h2>
+            <p><strong>Similitud:</strong> <span id="similitud"></span></p>
+            <p><strong>Predicción Imagen 1:</strong> <span id="prediccion1"></span></p>
+            <p><strong>Predicción Imagen 2:</strong> <span id="prediccion2"></span></p>
+        </div>
+    </div>
+
+    <!-- Cargar JavaScript -->
+    <script src="scripts/app.js"></script>
+</body>
+</html>
